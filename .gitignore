@@ -1,0 +1,19 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & Workspace
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / NPM (if added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Netlify local dev
+.netlify/

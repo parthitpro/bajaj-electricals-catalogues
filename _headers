@@ -1,0 +1,11 @@
+# Proper headers for PDF streaming and preview
+/assets/pdfs/*
+  Content-Type: application/pdf
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=86400
+
+# Security and caching for static web assets
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
