@@ -10,6 +10,7 @@ const PRODUCTS_DATA = [
     categoryLabel: "Wires & Cables",
     badgeClass: "badge-wires",
     coverClass: "cover-wires",
+    coverImage: "assets/images/cover-wires.png",
     graphicIcon: "🔥",
     badgeText: "Wires & Cables",
     pdfPath: "assets/pdfs/bajaj-wires-catalogue-2026.pdf",
@@ -32,6 +33,7 @@ const PRODUCTS_DATA = [
     categoryLabel: "Consumer Lighting",
     badgeClass: "badge-lighting",
     coverClass: "cover-lighting",
+    coverImage: "assets/images/cover-lighting.png",
     graphicIcon: "💡",
     badgeText: "Consumer Lighting",
     pdfPath: "assets/pdfs/consumer-lighting-catalogue-2026.pdf",
@@ -54,6 +56,7 @@ const PRODUCTS_DATA = [
     categoryLabel: "MCB & Switchgear",
     badgeClass: "badge-switchgear",
     coverClass: "cover-switchgear",
+    coverImage: "assets/images/cover-switchgear.png",
     graphicIcon: "⚡",
     badgeText: "MCB Switchgear",
     pdfPath: "assets/pdfs/mcb-catalogue-2026.pdf",
@@ -76,6 +79,7 @@ const PRODUCTS_DATA = [
     categoryLabel: "Decorative Lighting",
     badgeClass: "badge-decorative",
     coverClass: "cover-decorative",
+    coverImage: "assets/images/cover-decorative.png",
     graphicIcon: "✨",
     badgeText: "Decorative Lighting",
     pdfPath: "assets/pdfs/decorative-lighting-product-deck.pdf",
@@ -177,18 +181,22 @@ function renderProducts() {
 
     card.innerHTML = `
       <div class="card-upper">
-        <!-- 3D Booklet Visual Cover -->
+        <!-- 3D Booklet Visual Cover with Real PDF Cover Image -->
         <div class="booklet-cover ${product.coverClass}" onclick="openPdfPreview('${product.id}')" title="Click to preview '${product.title}' in browser">
-          <div class="booklet-brand-tag">
-            <span class="brand-mini">BAJAJ</span>
-            <span class="format-pill">PDF</span>
-          </div>
-          <div class="booklet-graphic">
-            ${product.graphicIcon}
-          </div>
-          <div class="booklet-title-area">
-            <div class="booklet-title-text">${product.title.replace('Catalogue', '').replace('Product Deck', '')}</div>
-            <div class="booklet-year">${product.version} • ${product.pages}P</div>
+          <div class="booklet-spine"></div>
+          <img src="${product.coverImage}" alt="${product.title} Cover" class="booklet-img-cover" loading="lazy">
+          <div class="booklet-overlay-glass">
+            <div class="booklet-brand-tag">
+              <span class="brand-mini">BAJAJ</span>
+              <span class="format-pill">PDF</span>
+            </div>
+            <div class="booklet-hover-preview">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Read PDF</span>
+            </div>
           </div>
         </div>
 
@@ -338,6 +346,11 @@ function closePdfModal() {
 // INQUIRY & QUOTATION MODAL
 // ==========================================
 function openInquiry(productName) {
+  const form = document.getElementById("inquiryForm");
+  const successView = document.getElementById("inquirySuccessView");
+  if (form) form.style.display = "flex";
+  if (successView) successView.style.display = "none";
+
   inquiryProductName.value = productName;
   inquiryModal.classList.add("active");
   inquiryModal.setAttribute("aria-hidden", "false");
@@ -354,40 +367,111 @@ function closeInquiryModal() {
   document.body.style.overflow = "";
 }
 
-// Form Submission Handler (Netlify + LocalStorage)
+// Form Submission Handler (Netlify Forms + LocalStorage + Direct Download)
 async function handleInquirySubmit(event) {
   event.preventDefault();
   const form = document.getElementById("inquiryForm");
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnContent = submitBtn.innerHTML;
+
+  // Show interactive loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon">
+      <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"></path>
+    </svg>
+    Submitting Request...
+  `;
+
   const formData = new FormData(form);
 
-  const submissionEntry = {
-    timestamp: new Date().toLocaleString(),
-    name: formData.get("user_name") || "",
-    email: formData.get("user_email") || "",
-    phone: formData.get("user_phone") || "",
-    company: formData.get("user_company") || "",
-    city: formData.get("user_city") || "",
-    product: formData.get("product_name") || "",
-    message: formData.get("user_message") || ""
-  };
-
-  saveSubmission(submissionEntry);
-
-  // If live on Netlify, submit async POST
-  try {
-    if (window.location.hostname !== "localhost" && window.location.protocol !== "file:") {
-      await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(formData).toString()
-      });
-    }
-  } catch (err) {
-    console.log("Netlify submission post:", err);
+  // Ensure form-name is explicitly present for Netlify Forms
+  if (!formData.has("form-name")) {
+    formData.append("form-name", "bajaj-catalogue-inquiries");
   }
 
-  closeInquiryModal();
-  showToast(`Thank you, ${submissionEntry.name}! Your request for "${submissionEntry.product}" is received.`);
+  const productName = formData.get("product_name") || "Bajaj Product Catalogue";
+  const submissionEntry = {
+    timestamp: new Date().toLocaleString(),
+    name: (formData.get("user_name") || "").trim(),
+    email: (formData.get("user_email") || "").trim(),
+    phone: (formData.get("user_phone") || "").trim(),
+    company: (formData.get("user_company") || "").trim(),
+    city: (formData.get("user_city") || "").trim(),
+    product: productName,
+    message: (formData.get("user_message") || "").trim()
+  };
+
+  // 1. Immediately persist to localStorage for instant Admin Dashboard reflection
+  saveSubmission(submissionEntry);
+
+  // 2. Submit async to Netlify Forms (with 4s timeout guard)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const bodyParams = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+      bodyParams.append(key, value);
+    }
+
+    await fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: bodyParams.toString(),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+  } catch (err) {
+    console.log("Form submission processed locally + server sync:", err);
+  }
+
+  // 3. Find matching PDF for 1-click direct download
+  const matchingProduct = PRODUCTS_DATA.find(p => 
+    p.title.toLowerCase() === productName.toLowerCase() || 
+    productName.toLowerCase().includes(p.categoryLabel.toLowerCase())
+  );
+  
+  const downloadBtn = document.getElementById("successDirectDownloadBtn");
+  if (matchingProduct && downloadBtn) {
+    downloadBtn.href = matchingProduct.pdfPath;
+    downloadBtn.setAttribute("download", `${matchingProduct.id}.pdf`);
+    downloadBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Download ${escapeHtml(matchingProduct.title)} (PDF)
+    `;
+  } else if (downloadBtn) {
+    downloadBtn.href = "assets/pdfs/bajaj-wires-catalogue-2026.pdf";
+    downloadBtn.setAttribute("download", "bajaj-catalogues-2026.pdf");
+    downloadBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Download Official Catalogues Package
+    `;
+  }
+
+  // 4. Transition to Success Screen inside Modal
+  form.style.display = "none";
+  const successView = document.getElementById("inquirySuccessView");
+  if (successView) {
+    const notice = document.getElementById("successCustomerNotice");
+    if (notice) {
+      notice.innerHTML = `Thank you, <strong>${escapeHtml(submissionEntry.name)}</strong>! Your quotation request for <strong>${escapeHtml(submissionEntry.product)}</strong> has been registered with <strong>Vira Agency Private Limited</strong>.`;
+    }
+    successView.style.display = "flex";
+  }
+
+  showToast(`Thank you, ${submissionEntry.name}! Request recorded.`);
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = originalBtnContent;
   form.reset();
 }
 

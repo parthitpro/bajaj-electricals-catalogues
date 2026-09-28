@@ -1,6 +1,7 @@
 # Bajaj Electricals - Official 2026 Product Catalogues Hub
+**Authorized Channel Partner: Vira Agency Private Limited**
 
-A modern, responsive, and high-performance product catalogue landing page designed specifically for **Bajaj Electricals**, featuring 4 official multi-page PDF catalogues, lead capture, and a password-protected **Admin Portal**.
+A modern, responsive, and high-performance product catalogue landing page designed for **Bajaj Electricals**, featuring 4 official multi-page PDF catalogues, lead capture, and a password-protected **Admin Portal**.
 
 ---
 
@@ -30,14 +31,7 @@ A modern, responsive, and high-performance product catalogue landing page design
 
 ---
 
-## 🔐 Default Admin Credentials
-- **Username**: `admin`
-- **Password**: `admin123`
-*(Customizable in `app.js` under `ADMIN_CONFIG`)*
-
----
-
 ## 🌐 How to Deploy to Netlify
 1. Open **[app.netlify.com/drop](https://app.netlify.com/drop)** in your browser.
-2. Drag and drop the `web page` folder.
+2. Drag and drop the repository folder.
 3. Your site will be live immediately on a free `https://*.netlify.app` URL with SSL and global CDN!
